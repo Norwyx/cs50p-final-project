@@ -33,3 +33,34 @@ def init_db():
 
 
 
+#CRUD functions for master_password
+
+def set_master_password(hashed_password: str) -> None:
+    conn = get_db_connection()
+    
+    conn.execute('INSERT INTO master_password (hashed_password) VALUES (?)', (hashed_password,))
+    
+    conn.commit()
+    conn.close()
+
+
+def get_master_password() -> str:
+    conn = get_db_connection()
+    
+    master_password = conn.execute('SELECT hashed_password FROM master_password').fetchone()
+    
+    conn.close()
+    return master_password
+
+
+def update_master_password(hashed_password: str) -> None:
+    conn = get_db_connection()
+    
+    conn.execute('UPDATE master_password SET hashed_password = ?', (hashed_password,))
+    
+    conn.commit()
+    conn.close()
+
+
+
+
