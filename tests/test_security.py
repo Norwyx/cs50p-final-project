@@ -1,5 +1,3 @@
-import pytest
-
 from src.security import hash_password, verify_password, encrypt, decrypt
 
 def test_hash_password():
