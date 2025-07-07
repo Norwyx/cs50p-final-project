@@ -64,3 +64,68 @@ def update_master_password(hashed_password: str) -> None:
 
 
 
+#CRUD functions for credentials
+
+def add_credential(service: str, username: str, encrypted_password: bytes) -> None:
+    """
+    Adds a new credential to the database.
+    """
+    conn = get_db_connection()
+    
+    conn.execute('''
+        INSERT INTO credentials (service, username, encrypted_password) 
+        VALUES (?, ?, ?)
+        ''', (service, username, encrypted_password))
+    
+    conn.commit()
+    conn.close()
+
+
+def get_credential(service: str) -> tuple:
+    """
+    Retrieves a credential from the database.
+    """
+    conn = get_db_connection()
+    
+    credential = conn.execute('SELECT * FROM credentials WHERE service = ?', (service,)).fetchone()
+    
+    conn.close()
+    return credential
+
+
+def get_all_credentials() -> list:
+    """
+    Retrieves all credentials from the database.
+    """
+    conn = get_db_connection()
+
+    credentials = conn.execute('SELECT * FROM credentials').fetchall()
+    
+    conn.close()
+    return credentials
+
+
+def update_credential(service: str, new_username: str, new_encrypted_password: bytes) -> None:
+    """
+    Updates a credential in the database.
+    """
+    conn = get_db_connection()
+    
+    conn.execute('''
+        UPDATE credentials 
+        SET username = ?, encrypted_password = ? WHERE service = ?
+        ''', (new_username, new_encrypted_password, service))
+    
+    conn.commit()
+    conn.close()
+
+
+def delete_credential(service: str) -> None:
+    """
+    Deletes a credential from the database.
+    """
+    conn = get_db_connection()
+
+    conn.execute('DELETE FROM credentials WHERE service = ?', (service,))
+    conn.commit()
+    conn.close()
