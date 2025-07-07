@@ -33,7 +33,7 @@ def init_db():
 
 
 
-#CRUD functions for master_password
+#CRUD functions for master password
 
 def set_master_password(hashed_password: str) -> None:
     conn = get_db_connection()
