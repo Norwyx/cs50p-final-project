@@ -47,7 +47,7 @@ def set_master_password(hashed_password: str) -> None:
 def get_master_password() -> str:
     conn = get_db_connection()
     
-    master_password = conn.execute('SELECT hashed_password FROM master_password').fetchone()
+    master_password = conn.execute('SELECT hashed_password FROM master_password WHERE id = 1').fetchone()
     
     conn.close()
     return master_password
@@ -56,7 +56,7 @@ def get_master_password() -> str:
 def update_master_password(hashed_password: str) -> None:
     conn = get_db_connection()
     
-    conn.execute('UPDATE master_password SET hashed_password = ?', (hashed_password,))
+    conn.execute('UPDATE master_password SET hashed_password = ? WHERE id = 1', (hashed_password,))
     
     conn.commit()
     conn.close()
