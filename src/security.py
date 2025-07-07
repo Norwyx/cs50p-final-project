@@ -1,4 +1,3 @@
-import base64
 import os
 
 from argon2 import PasswordHasher
@@ -33,7 +32,7 @@ def _derive_key(password: str, salt: bytes) -> bytes:
         salt=salt,
         iterations=480000,
     )
-    key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+    key = kdf.derive(password.encode())
     return key
 
 
