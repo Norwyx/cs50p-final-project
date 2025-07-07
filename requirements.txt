@@ -1,1 +1,4 @@
 art
+argon2-cffi>=21.3.0
+bcrypt
+cryptography
