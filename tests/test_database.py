@@ -33,3 +33,23 @@ def test_add_and_get_credential():
         hashed_password,
     )
     conn.close()    
+
+
+def test_get_all_credentials():
+    conn = database.get_db_connection(":memory:")
+    database.init_db(conn)
+    database.add_credential(conn, "test_service", "test_username", hashed_password)
+    database.add_credential(conn, "test_service2", "test_username2", hashed_password)
+    assert [tuple(cred) for cred in database.get_all_credentials(conn)] == [
+        (
+            "test_service",
+            "test_username",
+            hashed_password,
+        ),
+        (
+            "test_service2",
+            "test_username2",
+            hashed_password,
+        ),
+    ]
+    conn.close()
