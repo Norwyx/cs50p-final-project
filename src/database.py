@@ -30,6 +30,14 @@ def init_db(conn: sqlite3.Connection) -> None:
         );
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL
+        );
+        """
+    )
     conn.commit()
 
 
@@ -118,3 +126,21 @@ def delete_credential(conn: sqlite3.Connection, service: str) -> None:
     """
     conn.execute("DELETE FROM credentials WHERE service = ?", (service,))
     conn.commit()
+
+
+# CRUD functions for user
+def set_user_name(conn: sqlite3.Connection, name: str) -> None:
+    """Saves the user's name to the database."""
+    conn.execute(
+        "INSERT OR REPLACE INTO user (id, name) VALUES (1, ?)",
+        (name,),
+    )
+    conn.commit()
+
+
+def get_user_name(conn: sqlite3.Connection) -> str | None:
+    """Retrieves the user's name from the database."""
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM user WHERE id = 1")
+    result = cursor.fetchone()
+    return result[0] if result else None
