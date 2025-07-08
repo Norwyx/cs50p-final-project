@@ -12,6 +12,7 @@ class Vault:
         database.init_db(self.db_path)
 
     
+    # Basic vault functionality
     def is_locked(self) -> bool:
         return self._encryption_key is None
 
@@ -36,7 +37,33 @@ class Vault:
         else:
             print("Incorrect master password.")
 
+
+    # Master password functionality
+    def get_master_password(self) -> str | None:
+        conn = get_db_connection(self.db_path)
+        return database.get_master_password(conn)
+
+
+    def change_master_password(self) -> None:
+        if self.is_locked():
+            print("Vault is locked. Please unlock first.")
+            return
+        
+        master_password = input("Enter your current master password: ")
+        hashed_password = security.hash_password(master_password)
+        if security.verify_password(hashed_password, master_password):
+            self._encryption_key = security._derive_key(master_password, b"")
+        else:
+            print("Incorrect master password.")
+        
+        new_master_password = input("Enter your new master password: ")
+        hashed_password = security.hash_password(new_master_password)
+        database.update_master_password(self.db_path, hashed_password) 
+        self._encryption_key = security._derive_key(new_master_password, b"")
+        print("Master password changed.")
+
     
+    # CRUD functions for credentials
     def add_credential(self) -> None:
         if self.is_locked():
             print("Vault is locked. Please unlock first.")
