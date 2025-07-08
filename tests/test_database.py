@@ -25,6 +25,19 @@ def test_get_master_password():
 def test_update_master_password():
     conn = database.get_db_connection(":memory:")
     database.init_db(conn)
+    database.set_master_password(conn, hashed_password)
     database.update_master_password(conn, hashed_password)
     assert database.get_master_password(conn) == hashed_password
     conn.close()
+
+
+def test_add_credential():
+    conn = database.get_db_connection(":memory:")
+    database.init_db(conn)
+    database.add_credential(conn, "test_service", "test_username", hashed_password)
+    assert tuple(database.get_credential(conn, "test_service")) == (
+        "test_service",
+        "test_username",
+        hashed_password,
+    )
+    conn.close()    
