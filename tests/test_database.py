@@ -53,3 +53,16 @@ def test_get_all_credentials():
         ),
     ]
     conn.close()
+
+
+def test_update_credential():
+    conn = database.get_db_connection(":memory:")
+    database.init_db(conn)
+    database.add_credential(conn, "test_service", "test_username", hashed_password)
+    database.update_credential(conn, "test_service", "test_username2", hashed_password)
+    assert tuple(database.get_credential(conn, "test_service")) == (
+        "test_service",
+        "test_username2",
+        hashed_password,
+    )
+    conn.close()
