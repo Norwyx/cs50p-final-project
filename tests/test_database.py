@@ -66,3 +66,12 @@ def test_update_credential():
         hashed_password,
     )
     conn.close()
+
+
+def test_delete_credential():
+    conn = database.get_db_connection(":memory:")
+    database.init_db(conn)
+    database.add_credential(conn, "test_service", "test_username", hashed_password)
+    database.delete_credential(conn, "test_service")
+    assert database.get_credential(conn, "test_service") is None
+    conn.close()
