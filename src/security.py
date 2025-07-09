@@ -41,24 +41,11 @@ def _derive_key(password: str, salt: bytes) -> bytes:
     return key
 
 
-def encrypt(data: str, password: str) -> bytes:
-    """
-    Encrypts data with a key derived from the password.
-    The salt is prepended to the ciphertext.
-    """
-    salt = generate_salt()
-    key = _derive_key(password, salt)
-    encrypted_data = Fernet(key).encrypt(data.encode())
-    return salt + encrypted_data
+def encrypt(data: str, key: bytes) -> bytes:
+    """Encrypts data using a pre-derived key."""
+    return Fernet(key).encrypt(data.encode())
 
 
-def decrypt(token: bytes, password: str) -> str:
-    """
-    Decrypts data with a key derived from the password.
-    Salt has to be prepended to the ciphertext.
-    """
-    salt = token[:16]
-    encrypted_data = token[16:]
-    key = _derive_key(password, salt)
-    decrypted_data = Fernet(key).decrypt(encrypted_data).decode()
-    return decrypted_data
+def decrypt(token: bytes, key: bytes) -> str:
+    """Decrypts data using a pre-derived key."""
+    return Fernet(key).decrypt(token).decode()
