@@ -1,4 +1,5 @@
 from art import tprint
+import getpass
 import sqlite3
 import database
 import security
@@ -25,8 +26,8 @@ class Vault:
         print("Please set a master password to secure your vault.")
 
         while True:
-            password = input("Master Password: ")
-            confirm_password = input("Confirm Master Password: ")
+            password = getpass.getpass("Master Password: ")
+            confirm_password = getpass.getpass("Confirm Master Password: ")
 
             if password == confirm_password:
                 salt = security.generate_salt()
@@ -46,7 +47,7 @@ class Vault:
         key = security._derive_key(hashed_password, salt)
 
         while True:
-            password = input("Enter Master Password: ")
+            password = getpass.getpass("Enter Master Password: ")
             if security.verify_password(hashed_password, password):
                 self._encryption_key = key
                 print("Vault unlocked!")
@@ -63,14 +64,14 @@ class Vault:
             return
 
         old_password_hash = self.get_master_password()
-        old_password = input("Enter old master password: ")
+        old_password = getpass.getpass("Enter old master password: ")
 
         if not security.verify_password(old_password_hash, old_password):
             print("Invalid old password.")
             return
 
-        new_password = input("Enter new master password: ")
-        confirm_password = input("Confirm new master password: ")
+        new_password = getpass.getpass("Enter new master password: ")
+        confirm_password = getpass.getpass("Confirm new master password: ")
 
         if new_password == confirm_password:
             salt = security.generate_salt()
@@ -87,7 +88,7 @@ class Vault:
 
         service = input("Service: ")
         username = input("Username: ")
-        password = input("Password: ")
+        password = getpass.getpass("Password: ")
         print()
 
         encrypted_password = security.encrypt(password, self._encryption_key)
@@ -132,7 +133,7 @@ class Vault:
 
         service = input("Service: ")
         new_username = input("New username: ")
-        new_password = input("New password: ")
+        new_password = getpass.getpass("New password: ")
         print()
 
         encrypted_password = security.encrypt(new_password, self._encryption_key)
