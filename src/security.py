@@ -11,6 +11,10 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 ph = PasswordHasher()
 
 
+def generate_salt() -> bytes:
+    """Generates a random salt."""
+    return os.urandom(16)
+
 def hash_password(password: str) -> str:
     """Hashes a password for storage and verification."""
     return ph.hash(password)
@@ -42,7 +46,7 @@ def encrypt(data: str, password: str) -> bytes:
     Encrypts data with a key derived from the password.
     The salt is prepended to the ciphertext.
     """
-    salt = os.urandom(16)
+    salt = generate_salt()
     key = _derive_key(password, salt)
     encrypted_data = Fernet(key).encrypt(data.encode())
     return salt + encrypted_data

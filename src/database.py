@@ -16,7 +16,8 @@ def init_db(conn: sqlite3.Connection) -> None:
         """
         CREATE TABLE IF NOT EXISTS master_password (
             id INTEGER PRIMARY KEY,
-            hashed_password TEXT NOT NULL
+            hashed_password TEXT NOT NULL,
+            salt TEXT NOT NULL
         );
         """
     )
@@ -45,24 +46,24 @@ def init_db(conn: sqlite3.Connection) -> None:
 
 #CRUD functions for master password
 
-def set_master_password(conn: sqlite3.Connection, hashed_password: str) -> None:
+def set_master_password(conn: sqlite3.Connection, hashed_password: str, salt: bytes) -> None:
     conn.execute(
-        "INSERT INTO master_password (hashed_password) VALUES (?)", (hashed_password,)
+        "INSERT INTO master_password (hashed_password, salt) VALUES (?, ?)", (hashed_password, salt)
     )
     conn.commit()
 
 
-def get_master_password(conn: sqlite3.Connection) -> str | None:
+def get_master_password(conn: sqlite3.Connection) -> tuple[str, bytes] | None:
     cursor = conn.cursor()
-    cursor.execute("SELECT hashed_password FROM master_password")
+    cursor.execute("SELECT hashed_password, salt FROM master_password")
     result = cursor.fetchone()
-    return result[0] if result else None
+    return result if result else None
 
 
-def update_master_password(conn: sqlite3.Connection, hashed_password: str) -> None:
+def update_master_password(conn: sqlite3.Connection, hashed_password: str, salt: bytes) -> None:
     conn.execute(
-        "UPDATE master_password SET hashed_password = ? WHERE id = 1",
-        (hashed_password,),
+        "UPDATE master_password SET hashed_password = ?, salt = ? WHERE id = 1",
+        (hashed_password, salt),
     )
     conn.commit()
 

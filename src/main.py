@@ -29,8 +29,9 @@ class Vault:
             confirm_password = input("Confirm Master Password: ")
 
             if password == confirm_password:
+                salt = security.generate_salt()
                 hashed_password = security.hash_password(password)
-                database.set_master_password(self.conn, hashed_password)
+                database.set_master_password(self.conn, hashed_password, salt)
                 print("Master password set successfully!")
                 print()
                 break
@@ -41,12 +42,13 @@ class Vault:
         self._encryption_key = None
 
     def unlock(self):
-        hashed_password = database.get_master_password(self.conn)
+        hashed_password, salt = database.get_master_password(self.conn)
+        key = security._derive_key(hashed_password, salt)
 
         while True:
             password = input("Enter Master Password: ")
             if security.verify_password(hashed_password, password):
-                self._encryption_key = password
+                self._encryption_key = key
                 print("Vault unlocked!")
                 break
             else:
@@ -71,8 +73,9 @@ class Vault:
         confirm_password = input("Confirm new master password: ")
 
         if new_password == confirm_password:
+            salt = security.generate_salt()
             new_password_hash = security.hash_password(new_password)
-            database.update_master_password(self.conn, new_password_hash)
+            database.update_master_password(self.conn, new_password_hash, salt)
             print("Master password updated successfully!")
         else:
             print("Passwords do not match.")
