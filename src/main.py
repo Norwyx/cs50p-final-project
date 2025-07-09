@@ -21,6 +21,7 @@ class Vault:
         if database.get_master_password(self.conn):
             return
 
+        print()
         print("Please set a master password to secure your vault.")
 
         while True:
@@ -31,6 +32,7 @@ class Vault:
                 hashed_password = security.hash_password(password)
                 database.set_master_password(self.conn, hashed_password)
                 print("Master password set successfully!")
+                print()
                 break
             else:
                 print("Passwords do not match. Please try again.")
@@ -83,6 +85,7 @@ class Vault:
         service = input("Service: ")
         username = input("Username: ")
         password = input("Password: ")
+        print()
 
         encrypted_password = security.encrypt(password, self._encryption_key)
         database.add_credential(self.conn, service, username, encrypted_password)
@@ -100,9 +103,11 @@ class Vault:
             decrypted_password = security.decrypt(
                 credential["encrypted_password"], self._encryption_key
             )
+            print()
             print(f"Username: {credential['username']}")
             print(f"Password: {decrypted_password}")
         else:
+            print()
             print("Credential not found.")
 
     def get_all_credentials(self):
@@ -112,8 +117,10 @@ class Vault:
 
         credentials = database.get_all_credentials(self.conn)
 
+        print()
+
         for credential in credentials:
-            print(f"Service: {credential['service']}")
+            print(f"Service: {credential['service']}, Username: {credential['username']}, Password: {security.decrypt(credential['encrypted_password'], self._encryption_key)}")
 
     def update_credential(self):
         if self.is_locked:
@@ -123,6 +130,7 @@ class Vault:
         service = input("Service: ")
         new_username = input("New username: ")
         new_password = input("New password: ")
+        print()
 
         encrypted_password = security.encrypt(new_password, self._encryption_key)
         database.update_credential(self.conn, service, new_username, encrypted_password)
@@ -134,12 +142,68 @@ class Vault:
             return
 
         service = input("Service: ")
+        print()
         database.delete_credential(self.conn, service)
         print("Credential deleted successfully!")
 
 
-def main():
-    ...
+def main() -> None:
+    conn = database.get_db_connection(DB_PATH)
+    vault = Vault(conn)
+
+    user_name = database.get_user_name(conn)
+    if user_name:
+        tprint(f"Welcome back, {user_name}!", font="small")
+    else:
+        tprint("CS50P Vault", font="small")
+        print()
+        print("Welcome to the CS50P Vault! Let's get started.")
+        print()
+        name = input("What is your name? ").strip()
+        database.set_user_name(conn, name)
+        print(f"Welcome, {name}!")
+
+    vault.setup()
+    vault.unlock()
+
+    while True:
+        print_menu()
+        print()
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            vault.add_credential()
+        elif choice == "2":
+            vault.get_credential()
+        elif choice == "3":
+            vault.get_all_credentials()
+        elif choice == "4":
+            vault.update_credential()
+        elif choice == "5":
+            vault.delete_credential()
+        elif choice == "6":
+            vault.change_master_password()
+        elif choice == "7":
+            vault.lock()
+        elif choice == "8":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+    conn.close()
+
+
+def print_menu() -> None:
+    print("\nWhat would you like to do?")
+    print("1. Add a credential")
+    print("2. Get a credential")
+    print("3. Get all credentials")
+    print("4. Update a credential")
+    print("5. Delete a credential")
+    print("6. Change master password")
+    print("7. Lock vault")
+    print("8. Exit")
 
 
 if __name__ == "__main__":
