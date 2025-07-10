@@ -66,9 +66,7 @@ def init_db(conn: sqlite3.Connection) -> None:
 # CRUD functions for master password
 
 
-def set_master_password(
-    conn: sqlite3.Connection, hashed_password: str, salt: bytes, key_salt: bytes
-) -> None:
+def set_master_password(conn: sqlite3.Connection, hashed_password: str, salt: bytes, key_salt: bytes) -> None:
     """
     Saves the initial master password details to the database.
 
@@ -104,9 +102,7 @@ def get_master_password(conn: sqlite3.Connection) -> tuple[str, bytes, bytes] | 
     return result if result else None
 
 
-def update_master_password(
-    conn: sqlite3.Connection, hashed_password: str, salt: bytes, key_salt: bytes
-) -> None:
+def update_master_password(conn: sqlite3.Connection, hashed_password: str, salt: bytes, key_salt: bytes) -> None:
     """
     Updates the existing master password details in the database.
 
@@ -126,9 +122,7 @@ def update_master_password(
 # CRUD functions for credentials
 
 
-def add_credential(
-    conn: sqlite3.Connection, service: str, username: str, encrypted_password: bytes
-) -> None:
+def add_credential(conn: sqlite3.Connection, service: str, username: str, encrypted_password: bytes) -> None:
     """
     Adds a new encrypted credential to the database.
 
@@ -183,12 +177,7 @@ def get_all_credentials(conn: sqlite3.Connection) -> list[tuple]:
     return result
 
 
-def update_credential(
-    conn: sqlite3.Connection,
-    service: str,
-    new_username: str,
-    new_encrypted_password: bytes,
-) -> None:
+def update_credential(conn: sqlite3.Connection, service: str, new_username: str, new_encrypted_password: bytes) -> None:
     """
     Updates an existing credential in the database.
 
