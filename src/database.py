@@ -72,9 +72,7 @@ def update_master_password(conn: sqlite3.Connection, hashed_password: str, salt:
 
 #CRUD functions for credentials
 
-def add_credential(
-    conn: sqlite3.Connection, service: str, username: str, encrypted_password: bytes
-) -> None:
+def add_credential(conn: sqlite3.Connection, service: str, username: str, encrypted_password: bytes) -> None:
     """
     Adds a new credential to the database.
     """
@@ -108,9 +106,7 @@ def get_all_credentials(conn: sqlite3.Connection) -> list[tuple]:
     return result
 
 
-def update_credential(
-    conn: sqlite3.Connection, service: str, new_username: str, new_encrypted_password: bytes
-) -> None:
+def update_credential(conn: sqlite3.Connection, service: str, new_username: str, new_encrypted_password: bytes) -> None:
     """
     Updates a credential in the database.
     """

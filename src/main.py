@@ -123,8 +123,11 @@ class Vault:
 
         print()
 
-        for credential in credentials:
-            print(f"Service: {credential['service']}, Username: {credential['username']}, Password: {security.decrypt(credential['encrypted_password'], self._encryption_key)}")
+        if credentials:
+            for credential in credentials:
+                print(f"Service: {credential['service']}, Username: {credential['username']}, Password: {security.decrypt(credential['encrypted_password'], self._encryption_key)}")
+        else:
+            print("No credentials found.")
 
     def update_credential(self):
         if self.is_locked:
