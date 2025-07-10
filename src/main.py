@@ -5,6 +5,7 @@ import database
 import security
 from rich.console import Console
 from rich.table import Table
+import pyperclip
 
 
 DB_PATH = "vault.db"
@@ -111,9 +112,10 @@ class Vault:
             )
             
             console.print(f"Username: {credential['username']}")
-            console.print(f"Password: {decrypted_password}")
+            pyperclip.copy(decrypted_password)
+            console.print("[bold green]Password copied to clipboard.[/bold green]")
         else:
-            console.print("Credential not found.")
+            console.print("[bold red]Credential not found.[/bold red]")
 
     def get_all_credentials(self):
         if self.is_locked:
@@ -124,9 +126,10 @@ class Vault:
 
         if credentials:
             for credential in credentials:
-                console.print(f"Service: {credential['service']}, Username: {credential['username']}, Password: {security.decrypt(credential['encrypted_password'], self._encryption_key)}")
+                console.print(f"[bold]Service[/bold]: {credential['service']}, [bold]Username[/bold]: {credential['username']}, [bold]Password[/bold]: {len(security.decrypt(credential['encrypted_password'], self._encryption_key)) * '*'}")
+            console.print("\nIf you want to get an specific password, use option 2 instead.")
         else:
-            console.print("No credentials found.")
+            console.print("[bold red]No credentials found.[/bold red]")
 
     def update_credential(self):
         if self.is_locked:
@@ -140,7 +143,7 @@ class Vault:
 
         encrypted_password = security.encrypt(new_password, self._encryption_key)
         database.update_credential(self.conn, service, new_username, encrypted_password)
-        console.print("Credential updated successfully!")
+        console.print("[bold green]Credential updated successfully![/bold green]")
 
     def delete_credential(self):
         if self.is_locked:
@@ -150,7 +153,7 @@ class Vault:
         service = input("Service: ")
         console.print()
         database.delete_credential(self.conn, service)
-        console.print("Credential deleted successfully!")
+        console.print("[bold green]Credential deleted successfully![/bold green]")
 
 
 def main() -> None:
