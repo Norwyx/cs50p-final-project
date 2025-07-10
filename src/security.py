@@ -15,6 +15,7 @@ def generate_salt() -> bytes:
     """Generates a random salt."""
     return os.urandom(16)
 
+
 def hash_password(password: str) -> str:
     """Hashes a password for storage and verification."""
     return ph.hash(password)
@@ -29,7 +30,7 @@ def verify_password(hashed_password: str, password: str) -> bool:
         return False
 
 
-def _derive_key(password: str, salt: bytes) -> bytes:
+def derive_key(password: str, salt: bytes) -> bytes:
     """Derives a 32-byte key from a password and salt using PBKDF2."""
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),

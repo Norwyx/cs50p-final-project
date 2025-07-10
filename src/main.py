@@ -37,8 +37,9 @@ class Vault:
 
             if password == confirm_password:
                 salt = security.generate_salt()
+                key_salt = security.generate_salt()
                 hashed_password = security.hash_password(password)
-                database.set_master_password(self.conn, hashed_password, salt)
+                database.set_master_password(self.conn, hashed_password, salt, key_salt)
                 print("Master password set successfully!")
                 print()
                 break
@@ -49,13 +50,16 @@ class Vault:
         self._encryption_key = None
 
     def unlock(self):
-        hashed_password, salt = database.get_master_password(self.conn)
-        key = security._derive_key(hashed_password, salt)
+        master_password_data = database.get_master_password(self.conn)
+        if not master_password_data:
+            return
+        
+        hashed_password, _, key_salt = master_password_data
 
         while True:
             password = getpass.getpass("Enter Master Password: ")
             if security.verify_password(hashed_password, password):
-                self._encryption_key = key
+                self._encryption_key = security.derive_key(password, key_salt)
                 console.print("\n[bold green]Vault unlocked![/bold green]")
                 break
             else:
@@ -69,7 +73,12 @@ class Vault:
             print("Please unlock the vault first.")
             return
 
-        old_password_hash = self.get_master_password()
+        master_password_data = self.get_master_password()
+        if not master_password_data:
+            console.print("\n[bold red]Error:[/bold red] No master password set.\n")
+            return
+        
+        old_password_hash, _, _ = master_password_data
         old_password = getpass.getpass("Enter old master password: ")
 
         if not security.verify_password(old_password_hash, old_password):
@@ -81,8 +90,9 @@ class Vault:
 
         if new_password == confirm_password:
             salt = security.generate_salt()
+            key_salt = security.generate_salt()
             new_password_hash = security.hash_password(new_password)
-            database.update_master_password(self.conn, new_password_hash, salt)
+            database.update_master_password(self.conn, new_password_hash, salt, key_salt)
             console.print("\n[bold green]Master password updated successfully![/bold green]\n")
         else:
             console.print("\n[bold red]Error:[/bold red] Passwords do not match.\n")
