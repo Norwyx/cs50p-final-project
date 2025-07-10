@@ -3,9 +3,12 @@ import getpass
 import sqlite3
 import database
 import security
+from rich.console import Console
+from rich.table import Table
 
 
 DB_PATH = "vault.db"
+console = Console()
 
 
 class Vault:
@@ -50,10 +53,10 @@ class Vault:
             password = getpass.getpass("Enter Master Password: ")
             if security.verify_password(hashed_password, password):
                 self._encryption_key = key
-                print("Vault unlocked!")
+                console.print("\n[bold green]Vault unlocked![/bold green]")
                 break
             else:
-                print("Invalid password. Please try again.")
+                console.print("\n[bold red]Error:[/bold red] Invalid password. Please try again.\n")
 
     def get_master_password(self):
         return database.get_master_password(self.conn)
@@ -67,7 +70,7 @@ class Vault:
         old_password = getpass.getpass("Enter old master password: ")
 
         if not security.verify_password(old_password_hash, old_password):
-            print("Invalid old password.")
+            console.print("\n[bold red]Error:[/bold red] Invalid old password.\n")
             return
 
         new_password = getpass.getpass("Enter new master password: ")
@@ -77,9 +80,9 @@ class Vault:
             salt = security.generate_salt()
             new_password_hash = security.hash_password(new_password)
             database.update_master_password(self.conn, new_password_hash, salt)
-            print("Master password updated successfully!")
+            console.print("\n[bold green]Master password updated successfully![/bold green]\n")
         else:
-            print("Passwords do not match.")
+            console.print("\n[bold red]Error:[/bold red] Passwords do not match.\n")
 
     def add_credential(self):
         if self.is_locked:
@@ -89,15 +92,14 @@ class Vault:
         service = input("Service: ")
         username = input("Username: ")
         password = getpass.getpass("Password: ")
-        print()
 
         encrypted_password = security.encrypt(password, self._encryption_key)
         database.add_credential(self.conn, service, username, encrypted_password)
-        print("Credential added successfully!")
+        console.print("\n[bold green]Credential added successfully![/bold green]")
 
     def get_credential(self):
         if self.is_locked:
-            print("Please unlock the vault first.")
+            console.print("\n[bold red]Error:[/bold red] Please unlock the vault first.")
             return
 
         service = input("Service: ")
@@ -107,31 +109,28 @@ class Vault:
             decrypted_password = security.decrypt(
                 credential["encrypted_password"], self._encryption_key
             )
-            print()
-            print(f"Username: {credential['username']}")
-            print(f"Password: {decrypted_password}")
+            
+            console.print(f"Username: {credential['username']}")
+            console.print(f"Password: {decrypted_password}")
         else:
-            print()
-            print("Credential not found.")
+            console.print("Credential not found.")
 
     def get_all_credentials(self):
         if self.is_locked:
-            print("Please unlock the vault first.")
+            console.print("Please unlock the vault first.")
             return
 
         credentials = database.get_all_credentials(self.conn)
 
-        print()
-
         if credentials:
             for credential in credentials:
-                print(f"Service: {credential['service']}, Username: {credential['username']}, Password: {security.decrypt(credential['encrypted_password'], self._encryption_key)}")
+                console.print(f"Service: {credential['service']}, Username: {credential['username']}, Password: {security.decrypt(credential['encrypted_password'], self._encryption_key)}")
         else:
-            print("No credentials found.")
+            console.print("No credentials found.")
 
     def update_credential(self):
         if self.is_locked:
-            print("Please unlock the vault first.")
+            console.print("Please unlock the vault first.")
             return
 
         service = input("Service: ")
@@ -141,17 +140,17 @@ class Vault:
 
         encrypted_password = security.encrypt(new_password, self._encryption_key)
         database.update_credential(self.conn, service, new_username, encrypted_password)
-        print("Credential updated successfully!")
+        console.print("Credential updated successfully!")
 
     def delete_credential(self):
         if self.is_locked:
-            print("Please unlock the vault first.")
+            console.print("Please unlock the vault first.")
             return
 
         service = input("Service: ")
-        print()
+        console.print()
         database.delete_credential(self.conn, service)
-        print("Credential deleted successfully!")
+        console.print("Credential deleted successfully!")
 
 
 def main() -> None:
@@ -168,15 +167,16 @@ def main() -> None:
         print()
         name = input("What is your name? ").strip()
         database.set_user_name(conn, name)
-        print(f"Welcome, {name}!")
+        console.print(f"Welcome, {name}!")
 
     vault.setup()
     vault.unlock()
 
     while True:
         print_menu()
-        print()
+        console.print()
         choice = input("Enter your choice: ")
+        console.print()
 
         if choice == "1":
             vault.add_credential()
@@ -193,24 +193,36 @@ def main() -> None:
         elif choice == "7":
             vault.lock()
         elif choice == "8":
-            print("Goodbye!")
+            console.print("Goodbye!")
+            console.print()
             break
         else:
-            print("Invalid choice. Please try again.")
+            console.print("Invalid choice. Please try again.")
 
     conn.close()
 
 
 def print_menu() -> None:
-    print("\nWhat would you like to do?")
-    print("1. Add a credential")
-    print("2. Get a credential")
-    print("3. Get all credentials")
-    print("4. Update a credential")
-    print("5. Delete a credential")
-    print("6. Change master password")
-    print("7. Lock vault")
-    print("8. Exit")
+    """
+    Displays the main menu in a formatted table using rich.
+    """
+    table = Table(title="[bold cyan]CS50P Vault Menu[/bold cyan]", show_header=True, header_style="bold magenta")
+
+    table.add_column("Option", style="dim", width=12)
+    table.add_column("Action")
+
+    table.add_row("[bold]1[/bold]", "Add a new credential")
+    table.add_row("[bold]2[/bold]", "Get a credential")
+    table.add_row("[bold]3[/bold]", "List all credentials")
+    table.add_row("[bold]4[/bold]", "Update a credential")
+    table.add_row("[bold]5[/bold]", "Delete a credential")
+    table.add_row("", "") 
+    table.add_row("[bold]6[/bold]", "Change master password")
+    table.add_row("[bold]7[/bold]", "Lock vault")
+    table.add_row("[bold]8[/bold]", "Exit")
+
+    console.print()
+    console.print(table)  
 
 
 if __name__ == "__main__":
