@@ -6,6 +6,8 @@ import security
 from rich.console import Console
 from rich.table import Table
 import pyperclip
+import os
+import time
 
 
 DB_PATH = "vault.db"
@@ -114,6 +116,8 @@ class Vault:
             console.print(f"Username: {credential['username']}")
             pyperclip.copy(decrypted_password)
             console.print("[bold green]Password copied to clipboard.[/bold green]")
+            time.sleep(5)
+            clear_screen()
         else:
             console.print("[bold red]Credential not found.[/bold red]")
 
@@ -174,8 +178,10 @@ def main() -> None:
 
     vault.setup()
     vault.unlock()
+    clear_screen()
 
     while True:
+        clear_screen()
         print_menu()
         console.print()
         choice = input("Enter your choice: ")
@@ -195,6 +201,10 @@ def main() -> None:
             vault.change_master_password()
         elif choice == "7":
             vault.lock()
+            clear_screen()
+            console.print("Vault locked.")
+            time.sleep(2)
+            
         elif choice == "8":
             console.print("Goodbye!")
             console.print()
@@ -226,6 +236,19 @@ def print_menu() -> None:
 
     console.print()
     console.print(table)  
+
+
+def clear_screen() -> None:
+    """
+    Clears the terminal screen.
+    
+    This function checks the operating system and uses the appropriate
+    command ('cls' for Windows, 'clear' for macOS/Linux).
+    """
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        os.system('clear')
 
 
 if __name__ == "__main__":
