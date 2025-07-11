@@ -279,6 +279,16 @@ def main() -> None:
     vault.unlock()
     clear_screen()
 
+    menu_actions = {
+        "1": vault.add_credential,
+        "2": vault.get_credential,
+        "3": vault.get_all_credentials,
+        "4": vault.update_credential,
+        "5": vault.delete_credential,
+        "6": vault.change_master_password,
+        "7": vault.lock,
+    }
+
     while True:
         clear_screen()
         print_menu()
@@ -286,19 +296,7 @@ def main() -> None:
         choice = input("Enter your choice: ")
         console.print()
 
-        if choice == "1":
-            vault.add_credential()
-        elif choice == "2":
-            vault.get_credential()
-        elif choice == "3":
-            vault.get_all_credentials()
-        elif choice == "4":
-            vault.update_credential()
-        elif choice == "5":
-            vault.delete_credential()
-        elif choice == "6":
-            vault.change_master_password()
-        elif choice == "7":
+        if choice == "7":
             vault.lock()
             clear_screen()
             console.print("Vault locked.")
@@ -308,8 +306,10 @@ def main() -> None:
             console.print("Goodbye!")
             console.print()
             break
+        elif choice in menu_actions:
+            menu_actions[choice]()
         else:
-            console.print("Invalid choice. Please try again.")
+            console.print("[bold red]Invalid choice. Please try again.[/bold red]")
 
     conn.close()
 
