@@ -1,5 +1,7 @@
 import sqlite3
+from rich.console import Console
 
+console = Console()
 
 def get_db_connection(db_path: str) -> sqlite3.Connection:
     """
@@ -15,9 +17,13 @@ def get_db_connection(db_path: str) -> sqlite3.Connection:
     Returns:
         A `sqlite3.Connection` object connected to the database.
     """
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
+        return None
 
 
 def init_db(conn: sqlite3.Connection) -> None:
@@ -32,35 +38,38 @@ def init_db(conn: sqlite3.Connection) -> None:
     Args:
         conn: The `sqlite3.Connection` object for database interaction.
     """
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS master_password (
-            id INTEGER PRIMARY KEY,
-            hashed_password TEXT NOT NULL,
-            salt TEXT NOT NULL,
-            key_salt TEXT NOT NULL
-        );
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS credentials (
-            id INTEGER PRIMARY KEY,
-            service TEXT NOT NULL UNIQUE,
-            username TEXT NOT NULL,
-            encrypted_password BLOB NOT NULL
-        );
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS user (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL
-        );
-        """
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS master_password (
+                id INTEGER PRIMARY KEY,
+                hashed_password TEXT NOT NULL,
+                salt TEXT NOT NULL,
+                key_salt TEXT NOT NULL
+            );
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS credentials (
+                id INTEGER PRIMARY KEY,
+                service TEXT NOT NULL UNIQUE,
+                username TEXT NOT NULL,
+                encrypted_password BLOB NOT NULL
+            );
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL
+            );
+            """
+        )
+        conn.commit()
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
 
 
 # CRUD functions for master password
@@ -78,11 +87,14 @@ def set_master_password(conn: sqlite3.Connection, hashed_password: str, salt: by
         salt: The salt used for hashing the master password.
         key_salt: The salt used for deriving the encryption key.
     """
-    conn.execute(
-        "INSERT INTO master_password (hashed_password, salt, key_salt) VALUES (?, ?, ?)",
-        (hashed_password, salt, key_salt),
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            "INSERT INTO master_password (hashed_password, salt, key_salt) VALUES (?, ?, ?)",
+            (hashed_password, salt, key_salt),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        console.print("\n[bold red]Error:[/bold red] Master password already exists Try a different one.\n")
 
 
 def get_master_password(conn: sqlite3.Connection) -> tuple[str, bytes, bytes] | None:
@@ -97,9 +109,12 @@ def get_master_password(conn: sqlite3.Connection) -> tuple[str, bytes, bytes] | 
         or `None` if no master password has been set.
     """
     cursor = conn.cursor()
-    cursor.execute("SELECT hashed_password, salt, key_salt FROM master_password")
-    result = cursor.fetchone()
-    return result if result else None
+    try:   
+        cursor.execute("SELECT hashed_password, salt, key_salt FROM master_password")
+        result = cursor.fetchone()
+        return result if result else None
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
 
 
 def update_master_password(conn: sqlite3.Connection, hashed_password: str, salt: bytes, key_salt: bytes) -> None:
@@ -112,11 +127,14 @@ def update_master_password(conn: sqlite3.Connection, hashed_password: str, salt:
         salt: The new salt for hashing.
         key_salt: The new salt for key derivation.
     """
-    conn.execute(
-        "UPDATE master_password SET hashed_password = ?, salt = ?, key_salt = ? WHERE id = 1",
-        (hashed_password, salt, key_salt),
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            "UPDATE master_password SET hashed_password = ?, salt = ?, key_salt = ? WHERE id = 1",
+            (hashed_password, salt, key_salt),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        console.print("\n[bold red]Error:[/bold red] Master password already exists Try a different one.\n")
 
 
 # CRUD functions for credentials
@@ -132,11 +150,14 @@ def add_credential(conn: sqlite3.Connection, service: str, username: str, encryp
         username: The username for the service.
         encrypted_password: The password for the service, already encrypted.
     """
-    conn.execute(
-        "INSERT INTO credentials (service, username, encrypted_password) VALUES (?, ?, ?)",
-        (service, username, encrypted_password),
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            "INSERT INTO credentials (service, username, encrypted_password) VALUES (?, ?, ?)",
+            (service, username, encrypted_password),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        console.print("\n[bold red]Error:[/bold red] Credential already exists Try a different one.\n")
 
 
 def get_credential(conn: sqlite3.Connection, service: str) -> tuple | None:
@@ -152,12 +173,16 @@ def get_credential(conn: sqlite3.Connection, service: str) -> tuple | None:
         or `None` if the service is not found.
     """
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT service, username, encrypted_password FROM credentials WHERE service = ?",
-        (service,),
-    )
-    result = cursor.fetchone()
-    return result
+    try:
+        cursor.execute(
+            "SELECT service, username, encrypted_password FROM credentials WHERE service = ?",
+            (service,),
+        )
+        result = cursor.fetchone()
+        return result
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
+        return None
 
 
 def get_all_credentials(conn: sqlite3.Connection) -> list[tuple]:
@@ -172,9 +197,13 @@ def get_all_credentials(conn: sqlite3.Connection) -> list[tuple]:
         (service, username, encrypted_password).
     """
     cursor = conn.cursor()
-    cursor.execute("SELECT service, username, encrypted_password FROM credentials")
-    result = cursor.fetchall()
-    return result
+    try:
+        cursor.execute("SELECT service, username, encrypted_password FROM credentials")
+        result = cursor.fetchall()
+        return result
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
+        return None
 
 
 def update_credential(conn: sqlite3.Connection, service: str, new_username: str, new_encrypted_password: bytes) -> None:
@@ -187,11 +216,14 @@ def update_credential(conn: sqlite3.Connection, service: str, new_username: str,
         new_username: The new username for the service.
         new_encrypted_password: The new encrypted password for the service.
     """
-    conn.execute(
-        "UPDATE credentials SET username = ?, encrypted_password = ? WHERE service = ?",
-        (new_username, new_encrypted_password, service),
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            "UPDATE credentials SET username = ?, encrypted_password = ? WHERE service = ?",
+            (new_username, new_encrypted_password, service),
+        )
+        conn.commit()
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
 
 
 def delete_credential(conn: sqlite3.Connection, service: str) -> None:
@@ -202,8 +234,11 @@ def delete_credential(conn: sqlite3.Connection, service: str) -> None:
         conn: The `sqlite3.Connection` object.
         service: The name of the service to delete.
     """
-    conn.execute("DELETE FROM credentials WHERE service = ?", (service,))
-    conn.commit()
+    try:
+        conn.execute("DELETE FROM credentials WHERE service = ?", (service,))
+        conn.commit()
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
 
 
 # CRUD functions for user
@@ -217,11 +252,14 @@ def set_user_name(conn: sqlite3.Connection, name: str) -> None:
         conn: The `sqlite3.Connection` object.
         name: The user's name to be saved.
     """
-    conn.execute(
-        "INSERT OR REPLACE INTO user (id, name) VALUES (1, ?)",
-        (name,),
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            "INSERT OR REPLACE INTO user (id, name) VALUES (1, ?)",
+            (name,),
+        )
+        conn.commit()
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
 
 
 def get_user_name(conn: sqlite3.Connection) -> str | None:
@@ -235,6 +273,10 @@ def get_user_name(conn: sqlite3.Connection) -> str | None:
         The user's name as a string, or `None` if no name has been set.
     """
     cursor = conn.cursor()
-    cursor.execute("SELECT name FROM user WHERE id = 1")
-    result = cursor.fetchone()
-    return result[0] if result else None
+    try:
+        cursor.execute("SELECT name FROM user WHERE id = 1")
+        result = cursor.fetchone()
+        return result[0] if result else None
+    except sqlite3.Error as e:
+        console.print(f"\n[bold red]Error:[/bold red] {e}\n")
+        return None
