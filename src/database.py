@@ -160,7 +160,6 @@ def add_credential(conn: sqlite3.Connection, service: str, username: str, encryp
         return False
     return True
 
-
 def get_credential(conn: sqlite3.Connection, service: str) -> tuple | None:
     """
     Retrieves a specific credential from the database by its service name.
