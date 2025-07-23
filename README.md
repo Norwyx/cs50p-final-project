@@ -2,7 +2,7 @@
 
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 
-Video Demo: <URL HERE>
+Video Demo: <https://youtu.be/MkePweje-ew>
 
 CS50P Vault is a secure, command-line password manager built entirely in Python. It provides a local, encrypted vault to store and manage sensitive credentials, combining a user-friendly, menu-driven interface with robust, modern cryptographic practices. All data is stored locally in an SQLite database file (`vault.db`), ensuring the user retains full control over their information.
 
