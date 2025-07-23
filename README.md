@@ -1,4 +1,4 @@
-# CS50P Vault: A Secure Command-Line Password Manager
+# CS50P Vault
 
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 
