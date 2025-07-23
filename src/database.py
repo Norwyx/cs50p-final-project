@@ -140,7 +140,7 @@ def update_master_password(conn: sqlite3.Connection, hashed_password: str, salt:
 # CRUD functions for credentials
 
 
-def add_credential(conn: sqlite3.Connection, service: str, username: str, encrypted_password: bytes) -> None:
+def add_credential(conn: sqlite3.Connection, service: str, username: str, encrypted_password: bytes) -> bool:
     """
     Adds a new encrypted credential to the database.
 
@@ -157,7 +157,8 @@ def add_credential(conn: sqlite3.Connection, service: str, username: str, encryp
         )
         conn.commit()
     except sqlite3.IntegrityError:
-        console.print("\n[bold red]Error:[/bold red] Credential already exists Try a different one.\n")
+        return False
+    return True
 
 
 def get_credential(conn: sqlite3.Connection, service: str) -> tuple | None:

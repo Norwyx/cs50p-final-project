@@ -163,10 +163,16 @@ class Vault:
         service = input("Service: ")
         username = input("Username: ")
         password = getpass.getpass("Password: ")
-
         encrypted_password = security.encrypt(password, self._encryption_key)
-        database.add_credential(self.conn, service, username, encrypted_password)
-        console.print("\n[bold green]Credential added successfully![/bold green]")
+
+        if database.add_credential(self.conn, service, username, encrypted_password):
+            console.print("\n[bold green]Credential added successfully![/bold green]")
+            time.sleep(5)
+            clear_screen()
+        else:
+            console.print("\n[bold red]Error:[/bold red] Credential already exists. Try a different one.\n")
+            time.sleep(5)
+            clear_screen()
 
     def get_credential(self):
         """
@@ -191,10 +197,12 @@ class Vault:
             console.print(f"Username: {credential['username']}")
             pyperclip.copy(decrypted_password)
             console.print("[bold green]Password copied to clipboard.[/bold green]")
-            time.sleep(5)
+            time.sleep(8)
             clear_screen()
         else:
             console.print("[bold red]Credential not found.[/bold red]")
+            time.sleep(5)
+            clear_screen()
 
     def get_all_credentials(self):
         """
@@ -213,8 +221,12 @@ class Vault:
             for credential in credentials:
                 console.print(f"[bold]Service[/bold]: {credential['service']}, [bold]Username[/bold]: {credential['username']}, [bold]Password[/bold]: {len(security.decrypt(credential['encrypted_password'], self._encryption_key)) * '*'}")
             console.print("\nIf you want to get an specific password, use option 2 instead.")
+            time.sleep(8)
+            clear_screen()
         else:
             console.print("[bold red]No credentials found.[/bold red]")
+            time.sleep(5)
+            clear_screen()
 
     def update_credential(self):
         """
@@ -235,6 +247,8 @@ class Vault:
         encrypted_password = security.encrypt(new_password, self._encryption_key)
         database.update_credential(self.conn, service, new_username, encrypted_password)
         console.print("[bold green]Credential updated successfully![/bold green]")
+        time.sleep(5)
+        clear_screen()
 
     def delete_credential(self):
         """
@@ -251,6 +265,8 @@ class Vault:
         console.print()
         database.delete_credential(self.conn, service)
         console.print("[bold green]Credential deleted successfully![/bold green]")
+        time.sleep(5)
+        clear_screen()
 
 
 def main() -> None:
@@ -290,7 +306,6 @@ def main() -> None:
     }
 
     while True:
-        clear_screen()
         print_menu()
         console.print()
         choice = input("Enter your choice: ")
@@ -300,14 +315,17 @@ def main() -> None:
             vault.lock()
             clear_screen()
             console.print("Vault locked.")
-            time.sleep(2)
+            time.sleep(3)
             
         elif choice == "8":
             console.print("Goodbye!")
             console.print()
             break
+
         elif choice in menu_actions:
             menu_actions[choice]()
+            clear_screen()
+
         else:
             console.print("[bold red]Invalid choice. Please try again.[/bold red]")
 
